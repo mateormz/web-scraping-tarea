@@ -39,7 +39,7 @@ def lambda_handler(event, context):
 
     # Guardar los datos en DynamoDB
     dynamodb = boto3.resource('dynamodb')
-    table = dynamodb.Table('TablaSismosIGP')
+    table = dynamodb.Table('TablaHospitales')
 
     # Eliminar todos los elementos de la tabla antes de agregar los nuevos
     scan = table.scan()
