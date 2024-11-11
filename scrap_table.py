@@ -33,7 +33,9 @@ def lambda_handler(event, context):
     rows = []
     for row in table.find_all('tr')[1:]:  # Omitir el encabezado
         cells = row.find_all('td')
-        rows.append({headers[i+1]: cell.text for i, cell in enumerate(cells)})
+        row_data = {headers[i]: cells[i].text.strip() for i in range(len(cells))}
+        row_data['id'] = str(uuid.uuid4())  # Generar un ID único para cada entrada
+        rows.append(row_data)
 
     # Guardar los datos en DynamoDB
     dynamodb = boto3.resource('dynamodb')
@@ -50,12 +52,9 @@ def lambda_handler(event, context):
             )
 
     # Insertar los nuevos datos
-    i = 1
-    for row in rows:
-        row['#'] = i
-        row['id'] = str(uuid.uuid4())  # Generar un ID único para cada entrada
-        table.put_item(Item=row)
-        i = i + 1
+    with table.batch_writer() as batch:
+        for row in rows:
+            batch.put_item(Item=row)
 
     # Retornar el resultado como JSON
     return {
